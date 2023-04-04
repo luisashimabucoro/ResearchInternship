@@ -72,7 +72,25 @@ def train_test_split_classes(classes, test_split=0.3, seed=42):
 
     return classes[:threshold], classes[threshold:]
 
-def create_cross_domain_split(train_datasets, test_datasets, target_dir, train_proportion=0.8):
+def merge_datasets(dataset_paths, target_dir):
+    df = pd.DataFrame(columns=['filename', 'label'])
+    for dataset_path in dataset_paths:
+        dataset = pd.read_csv(f"{dataset_path}/labels.csv").rename(columns={'FILE_NAME' : 'filename', 'CATEGORY' : 'label'})
+        rel_path = os.path.relpath(dataset_path, f"{target_dir}/images")
+        dataset['filename'] = rel_path + '/images/' + dataset['filename'].str[:]
+        df = pd.concat([df, dataset[['filename', 'label']]], axis=0)
+    
+    return df
+
+def save_split_csv(dataset_paths, target_dir, split='train'):
+    df = merge_datasets(dataset_paths, target_dir)
+    classes, _ = train_test_split_classes(df['label'], test_split=0)
+    dataset = df[df['label'].isin(classes)].copy()
+    dataset.to_csv(path_or_buf=f"{target_dir}/{split}.csv", index=False)
+
+    print(f"{split} dataset successfully created!")
+
+def create_cross_domain_split(train_datasets, val_datasets, test_datasets, target_dir):
     """
     Function to create custom crss-domain split dataset
 
@@ -80,50 +98,17 @@ def create_cross_domain_split(train_datasets, test_datasets, target_dir, train_p
     test_datasets : list of test dataset paths
     target_dir : directory where train/val/test csvs should be stored
     """
-    # creating target directory if it doesnt exist already
+    # creating target directory if it doesnt already exist
     if not os.path.isdir(target_dir):
         os.mkdir(target_dir)
         os.mkdir(f"{target_dir}/images")
         print(f"Target directory {target_dir} created!")
     
-    
-    classes = pd.DataFrame(columns=['filename', 'label'])
-    for dataset_path in train_datasets:
-        # print(os.path.relpath(dataset_path, target_dir))
-        dataset = pd.read_csv(f"{dataset_path}/labels.csv").rename(columns={'FILE_NAME' : 'filename', 'CATEGORY' : 'label'})
-        rel_path = os.path.relpath(dataset_path, f"{target_dir}/images")
-        dataset['filename'] = rel_path + '/images/' + dataset['filename'].str[:]
-        classes = pd.concat([classes, dataset[['filename', 'label']]], axis=0)
-
-    # short_dataset = dataset_csv[['FILE_NAME', 'CATEGORY']].rename(columns={'FILE_NAME' : 'filename', 'CATEGORY' : 'label'})
-    # print(classes)
-    train_classes, val_classes = train_test_split_classes(classes['label'], test_split=0.2)
-    # print(f"{len(train_classes)}\t {len(val_classes)}")
-
-    train_dataset = classes[classes['label'].isin(train_classes)].copy()
-    train_dataset.to_csv(path_or_buf=f"{target_dir}/train.csv", index=False)
-
-    val_dataset = classes[classes['label'].isin(val_classes)].copy()
-    val_dataset.to_csv(path_or_buf=f"{target_dir}/val.csv", index=False)
-
-    classes = pd.DataFrame(columns=['filename', 'label'])
-    for dataset_path in test_datasets:
-        # print(os.path.relpath(dataset_path, target_dir))
-        dataset = pd.read_csv(f"{dataset_path}/labels.csv").rename(columns={'FILE_NAME' : 'filename', 'CATEGORY' : 'label'})
-        rel_path = os.path.relpath(dataset_path, f"{target_dir}/images")
-        dataset['filename'] = rel_path + '/images/' + dataset['filename'].str[:]
-        classes = pd.concat([classes, dataset[['filename', 'label']]], axis=0)
-
-    _, test_classes = train_test_split_classes(classes['label'], test_split=1)
-
-    test_dataset = classes[classes['label'].isin(test_classes)].copy()
-    test_dataset.to_csv(path_or_buf=f"{target_dir}/test.csv", index=False)
+    save_split_csv(train_datasets, target_dir, split='train')
+    save_split_csv(val_datasets, target_dir, split='val')
+    save_split_csv(test_datasets, target_dir, split='test')
     
     print("Cross domain split files successfully created!")
-
-
-
-    return
 
 def main():
     parser = argparse.ArgumentParser(description='Argument parser for Meta Album dataloader')
