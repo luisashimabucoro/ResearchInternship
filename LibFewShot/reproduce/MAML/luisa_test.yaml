@@ -1,0 +1,98 @@
+includes:
+  - headers/data.yaml
+  - headers/device.yaml
+  - headers/misc.yaml
+  - headers/model.yaml
+  - headers/optimizer.yaml
+
+
+batch_size: 128
+# few shot settings
+# test way/shot are the same as train
+way_num: 5
+shot_num: 5
+query_num: 15
+episode_size: 2
+train_episode: 200
+# train_episode: 1000
+# test_episode: 300
+test_episode: 600
+experimental: false
+eval_types: oracle, cross_val
+k_fold: 1000
+
+device_ids: 1
+n_gpu: 1
+epoch: 5
+
+result_root: /afs/inf.ed.ac.uk/user/s25/s2589574/BEPE/Models/MAML
+data_root: /mnt/invinciblefs/scratch/lushima/datasets/44322/TEX_Extended
+
+optimizer:
+  name: Adam
+  kwargs:
+    lr: 1e-3
+  other: ~
+
+backbone:
+  name: Conv64F
+  kwargs:
+    is_flatten: True
+    is_feature: False
+    leaky_relu: False
+    negative_slope: 0.2
+    last_pool: True
+
+classifier:
+  name: MAML
+  kwargs:
+    inner_param:
+      lr: 1e-2
+      train_iter: 5
+      # test_iter: 10
+      test_iter: 10
+    feat_dim: 1600
+
+
+# backbone:
+#   name: resnet12
+#   kwargs: ~
+
+# classifier:
+#   name: MAML
+#   kwargs:
+#     inner_param:
+#       lr: 1e-2
+#       train_iter: 5
+#       test_iter: 10
+#     feat_dim: 640
+
+
+# backbone:
+#   name: resnet18
+#   kwargs: ~
+
+# classifier:
+#   name: MAML
+#   kwargs:
+#     inner_param:
+#       lr: 1e-2
+#       train_iter: 5
+#       test_iter: 10
+#     feat_dim: 512
+
+
+# backbone:
+#   name: WRN
+#   kwargs:
+#     depth: 28
+#     widen_factor: 10
+
+# classifier:
+#   name: MAML
+#   kwargs:
+#     inner_param:
+#       lr: 1e-2
+#       train_iter: 5
+#       test_iter: 10
+#     feat_dim: 640

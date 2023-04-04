@@ -1,0 +1,8 @@
+train_datasets:
+  - /mnt/invinciblefs/scratch/lushima/datasets/44322/TEX_Extended
+  - /mnt/invinciblefs/scratch/lushima/datasets/44319/SPT_Extended
+test_datasets:
+  - /mnt/invinciblefs/scratch/lushima/datasets/44318/FLW_Extended
+target_dir: /mnt/invinciblefs/scratch/lushima/datasets/cross_domain_experiment
+train_proportion: 0.8
+
